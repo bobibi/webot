@@ -11,6 +11,10 @@ class WebotCore(object):
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '\
                           'Chrome/47.0.2526.106 Safari/537.36'
         self.qr_url = None
+        self.wechat_context = {
+            'contact': {},
+            'chatroom': {},
+        }
 
     def start(self, res_hanlder):
         self.get_uuid()
@@ -22,37 +26,36 @@ class WebotCore(object):
             print 'Please scan the QR using your wechat client: {url}'.format(url=self.qr_url)
 
         init_res = self.wechat_init()
-        res_hanlder.wechat_init(init_res)
+        res_hanlder.wechat_init(self.wechat_context, init_res)
 
         contact_res = self.get_contact()
-        res_hanlder.wechat_contact(contact_res)
+        res_hanlder.wechat_contact(self.wechat_context, contact_res)
 
         # TODO: capture signal routines when process shutdown
         while True:
             sync_res = self.synccheck()
-            res_hanlder.wechat_sync(sync_res)
+            res_hanlder.wechat_sync(self.wechat_context, sync_res)
 
             msg_res = self.fetch_message()
-            task_pool = res_hanlder.wechat_message(msg_res)
+            task_pool = res_hanlder.wechat_message(self.wechat_context, msg_res)
 
             for out_msg in task_pool.out_messages:
                 self.send_message(out_msg['to'], out_msg['msg'])
 
             if len(task_pool.chatrooms_need_info) > 0:
                 chatroom_res = self.get_chatrooms_info(task_pool.chatrooms_need_info)
-                res_hanlder.wechat_chatroom_info(chatroom_res)
+                res_hanlder.wechat_chatroom_info(self.wechat_context, chatroom_res)
+
+            if task_pool.refresh_contact:
+                contact_res = self.get_contact()
+                res_hanlder.wechat_contact(self.wechat_context, contact_res)
 
     def get_uuid(self):
         url = 'https://login.weixin.qq.com/jslogin?appid=wx782c26e4c19acffb&redirect_uri=https%3A%2F%2Fwx.qq.com'\
               '%2Fcgi-bin%2Fmmwebwx-bin%2Fwebwxnewloginpage&fun=new&lang=zh_CN'
         r = requests.get(url)
-        print '____get_uuid____'
-        print '[response]'
-        print r.text
         uuid_search = re.search('window.QRLogin.uuid = "([^"]+)"', r.text)
         self.uuid = uuid_search.group(1)
-        print '[parsed uuid]'
-        print self.uuid
         self.qr_url = 'https://login.weixin.qq.com/qrcode/'+self.uuid
 
     def pop_qr(self):
@@ -65,16 +68,10 @@ class WebotCore(object):
     def check_login(self):
         url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?uuid='+self.uuid+'&tip=1'
         r = requests.get(url)
-        print '____check_login____'
-        print '[response]'
-        print r.text
         url_search = re.search('window.redirect_uri="([^"]+)"', r.text)
         if url_search:
             url = url_search.group(1)
             r = requests.head(url)
-            print '[login success]'
-            print '[response]'
-            print r.text
             self.wxuin = r.cookies['wxuin']
             self.wxsid = r.cookies['wxsid']
             self.cookie = r.cookies
@@ -98,7 +95,7 @@ class WebotCore(object):
         url = 'https://web2.wechat.com/cgi-bin/mmwebwx-bin/webwxinit'
         r = requests.post(url, json = payload, cookies=self.cookie)
         rjson = json.loads(r.content.decode('utf-8', 'replace'))
-        print '____wechat_init____'
+
         self.user = rjson['User']
         self.skey = rjson['SKey']
         self.synckey = self.gen_synckey(rjson['SyncKey'])
