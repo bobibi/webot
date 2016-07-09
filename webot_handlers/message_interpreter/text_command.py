@@ -13,4 +13,5 @@ call_me_response = [
 
 def parse_and_response(context, obj, task_pool):
     if obj.content.find(context.my_profile['Name']) != -1:
+        print 'Someone called me!'
         task_pool.send_message(to=obj.sender_id, msg=random.choice(call_me_response))

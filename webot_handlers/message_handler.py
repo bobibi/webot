@@ -7,11 +7,13 @@ import chatroom_message_handler as cmh
 
 SDR_TYPE_CHATROOM = 0
 SDR_TYPE_INDIVIDUAL = 1
-SDR_TYPE_SYNC = 2
 
 MTYPE_VOICE = 34
 MTYPE_TEXT = 1
 MTYPE_MONEY = 10000
+MTYPE_SYNC = 51
+MTYPE_PHOTO = 3
+MTYPE_EMOICON = 47
 
 
 class WechatMessage(object):
@@ -27,8 +29,6 @@ class WechatMessage(object):
             if sender_search is not None:
                 self.member_id = sender_search.group(1)
                 self.content = re.sub('^@[0-9a-z]+:<br/>', '', self.content)
-        elif self.content[:22] == '&lt;msg&gt;<br/>&lt;op':
-            self.sender_type = SDR_TYPE_SYNC
         else:
             self.sender_type = SDR_TYPE_INDIVIDUAL
 

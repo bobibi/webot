@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from message_interpreter import text_command
 
 
 def text_message(context, obj, task_pool):
@@ -23,7 +24,9 @@ def text_message(context, obj, task_pool):
     if len(member_name)>0:
         said = u'{room} 的 {member} 说: '.format(room=room_name, member=member_name)
 
+    text_command.parse_and_response(context, obj, task_pool)
     #task_pool.send_message(to=obj.sender_id, msg=said+obj.content)
+
 
 def money_message(context, obj, task_pool):
     chatroom = context.get_chatroom(obj.sender_id)
@@ -31,7 +34,7 @@ def money_message(context, obj, task_pool):
         task_pool.query_chatroom_info(obj.sender_id)
         room_name = '某个群'
     else:
-        room_name = context.get_chatroom(obj.sender_id)['NickName']
+        room_name = chatroom['NickName']
 
     print u'Room: {0} [{1}]'.format(room_name, obj.sender_id)
     print u'Content: {0}'.format(obj.content)

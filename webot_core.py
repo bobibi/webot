@@ -1,4 +1,4 @@
-import string, random, requests, re, urllib, time, cStringIO, json
+import string, random, requests, re, urllib, time, cStringIO, json, logging
 
 
 class WebotCore(object):
@@ -18,6 +18,7 @@ class WebotCore(object):
             self.pop_qr()
         except:
             print 'Please open and scan: ' + self.qr_url
+            logging.info(self.qr_url)
         while not self.check_login():
             print 'Please scan the QR using your wechat client: {url}'.format(url=self.qr_url)
 

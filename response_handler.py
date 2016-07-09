@@ -5,11 +5,12 @@ import webot_handlers.wechat_init_handler as init_handler
 from webot_task_pool import WebotTaskPool
 import sys, traceback
 import pprint as pp
+import logging
 
 
 class ResponseHandler(object):
     def __init__(self):
-        print 'response handler init'
+        logging.info('response handler init')
 
     def wechat_init(self, context, msg):
         reload(init_handler)
