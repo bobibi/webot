@@ -14,13 +14,11 @@ class WebotCore(object):
 
     def start(self, res_hanlder, context):
         self.get_uuid()
-        try:
-            self.pop_qr()
-        except:
-            print 'Please open and scan: ' + self.qr_url
-            logging.info(self.qr_url)
-        while not self.check_login():
-            print 'Please scan the QR using your wechat client: {url}'.format(url=self.qr_url)
+        logging.info(self.qr_url)
+        remain_check = 10
+        while not self.check_login() and remain_check > 0:
+            remain_check -= 1
+            logging.info('Please scan the QR using your wechat client: {url}'.format(url=self.qr_url))
 
         init_res = self.wechat_init()
         res_hanlder.wechat_init(context, init_res)
