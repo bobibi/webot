@@ -1,4 +1,5 @@
 import time
+import pprint as pp
 
 
 class WebotContext(object):
@@ -12,7 +13,7 @@ class WebotContext(object):
         contact_id = data['UserName']
         contact_name = data['NickName']
         self.contact[contact_id] = data
-        self.chatroom_timestamp = time.time()
+        self.contact_timestamp = time.time()
         print u'{0} [{1}]'.format(contact_name, contact_id)
         
     def upsert_chatroom(self, data):
