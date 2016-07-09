@@ -13,6 +13,7 @@ class WebotContext(object):
         contact_name = data['NickName']
         self.contact[contact_id] = data
         self.chatroom_timestamp = time.time()
+        print u'{0} [{1}]'.format(contact_name, contact_id)
         
     def upsert_chatroom(self, data):
         room_id = data['UserName']
@@ -29,7 +30,7 @@ class WebotContext(object):
         for member in data['MemberList']:
             member_id = member['UserName']
             self.chatroom[room_id]['MemberList'][member_id] = member
-            print '\t- {0} [{1}]'.format(member['NickName'], member_id)
+            print u'\t- {0} [{1}]'.format(member['NickName'], member_id)
 
         print '<' * 40
         self.chatroom_timestamp[room_id] = time.time()

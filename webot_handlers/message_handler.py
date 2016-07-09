@@ -9,7 +9,7 @@ MTYPE_TEXT = 1
 
 
 def message_package_handler(context, msg, task_pool):
-    print '%d messages fetched!'%msg['AddMsgCount']
+    print u'%d messages fetched!'%msg['AddMsgCount']
 
     for m in msg['AddMsgList']:
         single_message_handler(context, m, task_pool)
@@ -27,9 +27,9 @@ def single_message_handler(context, msg, task_pool):
 
 
 def nop_handler(context, msg, task_pool):
-    print 'Unknow msg type: {0}'.format(msg['MsgType'])
-    print 'From: {0} [{1}]'.format(context.get_contact(msg['FromUserName']), msg['FromUserName'])
-    print 'Content: {0}'.format(msg['Content'])
+    print u'Unknow msg type: {0}'.format(msg['MsgType'])
+    print u'From: {0} [{1}]'.format(context.get_contact(msg['FromUserName']), msg['FromUserName'])
+    print u'Content: {0}'.format(msg['Content'])
     pass
 
 
@@ -66,9 +66,9 @@ def text_message_handler_chatroom(context, msg, task_pool):
         else:
             sender = chatroom['MemberList'][sender_id]['NickName']
 
-    print 'Room: {0} [{1}]'.format(senderroom, room_id)
-    print 'Member: {0} [{1}] '.format(sender, sender_id)
-    print 'Content: '+content
+    print u'Room: {0} [{1}]'.format(senderroom, room_id)
+    print u'Member: {0} [{1}] '.format(sender, sender_id)
+    print u'Content: '+content
 
     said = ''
     if len(sender)>0:
@@ -86,8 +86,8 @@ def text_message_handler_individual(context, msg, task_pool):
     else:
         task_pool.query_contact()
         sender = ''
-    print 'From: {0} [{1}]'.format(sender, sender_id)
-    print 'Content: {0}'.format(content)
+    print u'From: {0} [{1}]'.format(sender, sender_id)
+    print u'Content: {0}'.format(content)
     task_pool.send_message(to=sender_id, msg=u'{sdr} 说: {msg}'.format(sdr=sender, msg=content))
 
 def voice_message_handler(context, msg, task_pool):
