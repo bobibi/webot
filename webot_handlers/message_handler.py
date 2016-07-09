@@ -21,12 +21,15 @@ def single_message_handler(context, msg, task_pool):
     # print '<'*40
     handlers = {
         MTYPE_TEXT: text_message_handler,
-        MTYPE_VOICE: voice_message_handler,
+        #MTYPE_VOICE: voice_message_handler,
     }
     handlers.get(msg['MsgType'], nop_handler)(context, msg, task_pool)
 
 
 def nop_handler(context, msg, task_pool):
+    print 'Unknow msg type: {0}'.format(msg['MsgType'])
+    print 'From: {0} [{1}]'.format(context.get_contact(msg['FromUserName']), msg['FromUserName'])
+    print 'Content: {0}'.format(msg['Content'])
     pass
 
 
@@ -41,51 +44,51 @@ def text_message_handler(context, msg, task_pool):
 
 
 def text_message_handler_chatroom(context, msg, task_pool):
-    senderroom_id = msg['FromUserName']
-    content = msg['Content']
+    room_id = msg['FromUserName']
 
-    sender_search = re.search('^(@[0-9a-z]+):<br/>', content)
+    sender_search = re.search('^(@[0-9a-z]+):<br/>', msg['Content'])
     if sender_search is None:
         print 'this is not chatroom message!!'
         return
     sender_id = sender_search.group(1)
-    content = re.sub('^@[0-9a-z]+:<br/>', '', content)
+    content = re.sub('^@[0-9a-z]+:<br/>', '', msg['Content'])
 
-    if senderroom_id not in context['chatroom']:
-        task_pool.query_chatroom_info(senderroom_id)
+    chatroom = context.get_chatroom(room_id)
+    if chatroom is None:
+        task_pool.query_chatroom_info(room_id)
         senderroom = ''
         sender = ''
     else:
-        senderroom = context['chatroom'][senderroom_id]['NickName']
-        if sender_id not in context['chatroom'][senderroom_id]['MemberList']:
-            task_pool.query_chatroom_info(senderroom_id)
+        senderroom = chatroom['NickName']
+        if sender_id not in chatroom['MemberList']:
+            task_pool.query_chatroom_info(room_id)
             sender = ''
         else:
-            sender = context['chatroom'][senderroom_id]['MemberList'][sender_id]['NickName']
+            sender = chatroom['MemberList'][sender_id]['NickName']
 
-    print 'Room: '+senderroom
-    print 'Member: '+sender
+    print 'Room: {0} [{1}]'.format(senderroom, room_id)
+    print 'Member: {0} [{1}] '.format(sender, sender_id)
     print 'Content: '+content
 
     said = ''
     if len(sender)>0:
         said = u'{room} 的 {member} 说: '.format(room=senderroom, member=sender)
 
-    task_pool.send_message(to=senderroom_id, msg=said+content)
+    task_pool.send_message(to=room_id, msg=said+content)
 
 def text_message_handler_individual(context, msg, task_pool):
     sender_id = msg['FromUserName']
     content = msg['Content']
 
-    if sender_id in context['contact']:
-        sender = context['contact'][sender_id]['NickName']
-        print 'From: %s\nMessage: %s\n'%(context['contact'][sender_id]['NickName'], content)
+    contact = context.get_contact(sender_id)
+    if contact is not None:
+        sender = contact['NickName']
     else:
         task_pool.query_contact()
-        sender = 'UNKNOWN'
-        print 'From: %s\nMessage: %s\n'%(sender_id, content)
-
-    task_pool.send_message(to=sender_id, msg=u'{sdr}说: {msg}'.format(sdr=sender, msg=content))
+        sender = ''
+    print 'From: {0} [{1}]'.format(sender, sender_id)
+    print 'Content: {0}'.format(content)
+    task_pool.send_message(to=sender_id, msg=u'{sdr} 说: {msg}'.format(sdr=sender, msg=content))
 
 def voice_message_handler(context, msg, task_pool):
     pass

@@ -11,12 +11,8 @@ class WebotCore(object):
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '\
                           'Chrome/47.0.2526.106 Safari/537.36'
         self.qr_url = None
-        self.wechat_context = {
-            'contact': {},
-            'chatroom': {},
-        }
 
-    def start(self, res_hanlder):
+    def start(self, res_hanlder, context):
         self.get_uuid()
         try:
             self.pop_qr()
@@ -26,29 +22,29 @@ class WebotCore(object):
             print 'Please scan the QR using your wechat client: {url}'.format(url=self.qr_url)
 
         init_res = self.wechat_init()
-        res_hanlder.wechat_init(self.wechat_context, init_res)
+        res_hanlder.wechat_init(context, init_res)
 
         contact_res = self.get_contact()
-        res_hanlder.wechat_contact(self.wechat_context, contact_res)
+        res_hanlder.wechat_contact(context, contact_res)
 
         # TODO: capture signal routines when process shutdown
         while True:
             sync_res = self.synccheck()
-            res_hanlder.wechat_sync(self.wechat_context, sync_res)
+            res_hanlder.wechat_sync(context, sync_res)
 
             msg_res = self.fetch_message()
-            task_pool = res_hanlder.wechat_message(self.wechat_context, msg_res)
+            task_pool = res_hanlder.wechat_message(context, msg_res)
 
             for out_msg in task_pool.out_messages:
                 self.send_message(out_msg['to'], out_msg['msg'])
 
             if len(task_pool.chatrooms_need_info) > 0:
                 chatroom_res = self.get_chatrooms_info(task_pool.chatrooms_need_info)
-                res_hanlder.wechat_chatroom_info(self.wechat_context, chatroom_res)
+                res_hanlder.wechat_chatroom_info(context, chatroom_res)
 
             if task_pool.refresh_contact:
                 contact_res = self.get_contact()
-                res_hanlder.wechat_contact(self.wechat_context, contact_res)
+                res_hanlder.wechat_contact(context, contact_res)
 
     def get_uuid(self):
         url = 'https://login.weixin.qq.com/jslogin?appid=wx782c26e4c19acffb&redirect_uri=https%3A%2F%2Fwx.qq.com'\
