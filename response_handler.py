@@ -1,6 +1,7 @@
 import webot_handlers.message_handler as msg_handler
 import webot_handlers.contact_handler as contact_handler
 import webot_handlers.chatroom_info_handler as cr_info_handler
+import webot_handlers.wechat_init_handler as init_handler
 from webot_task_pool import WebotTaskPool
 import sys, traceback
 import pprint as pp
@@ -11,8 +12,13 @@ class ResponseHandler(object):
         print 'response handler init'
 
     def wechat_init(self, context, msg):
-        #pp.pprint(msg)
-        pass
+        reload(init_handler)
+        try:
+            init_handler.wechat_init(context, msg)
+        except Exception as e:
+            traceback.print_exc(file=sys.stdout)
+            print 'init handler cannot run!!'
+            print e
 
     def wechat_contact(self, context, msg):
         reload(contact_handler)

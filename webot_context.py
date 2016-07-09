@@ -5,15 +5,18 @@ import pprint as pp
 class WebotContext(object):
     def __init__(self):
         self.contact = {}
+        self.contact_name_index = {}
         self.contact_timestamp = 0
         self.chatroom = {}
         self.chatroom_timestamp = {}
+        self.my_profile = {}
 
     def upsert_contact(self, data):
         contact_id = data['UserName']
         contact_name = data['NickName']
         self.contact[contact_id] = data
         self.contact_timestamp = time.time()
+        self.contact_name_index[contact_name] = contact_id
         print u'{0} [{1}]'.format(contact_name, contact_id)
         
     def upsert_chatroom(self, data):
@@ -38,6 +41,9 @@ class WebotContext(object):
     
     def get_contact(self, contact_id):
         return self.contact.get(contact_id, None)
+
+    def get_contact_id(self, contact_name):
+        return self.contact_name_index.get(contact_name, None)
     
     def get_chatroom(self, room_id):
         return self.chatroom.get(room_id, None)
