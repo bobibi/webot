@@ -19,6 +19,7 @@ class WebotCore(object):
         while not self.check_login() and remain_check > 0:
             remain_check -= 1
             logging.info('Please scan the QR using your wechat client: {url}'.format(url=self.qr_url))
+            logging.info('checking remaining: {0}'.format(remain_check))
 
         init_res = self.wechat_init()
         res_hanlder.wechat_init(context, init_res)
