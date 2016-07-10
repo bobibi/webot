@@ -1,9 +1,10 @@
-import time
+import time, logging
 import pprint as pp
 
 
 class WebotContext(object):
     def __init__(self):
+        logging.info('WebotContext init ...')
         self.contact = {}
         self.contact_name_index = {}
         self.contact_timestamp = 0
@@ -17,7 +18,7 @@ class WebotContext(object):
         self.contact[contact_id] = data
         self.contact_timestamp = time.time()
         self.contact_name_index[contact_name] = contact_id
-        print u'{0} [{1}]'.format(contact_name, contact_id)
+        logging.info(u'Upsert contact: {0} [{1}]'.format(contact_name, contact_id))
         
     def upsert_chatroom(self, data):
         room_id = data['UserName']
@@ -28,15 +29,15 @@ class WebotContext(object):
         self.chatroom[room_id]['HeadImgUrl'] = data['HeadImgUrl']
         self.chatroom[room_id]['NickName'] = data['NickName']
 
-        print '>' * 40
-        print data['NickName'] + ' [' + room_id + ']'
+        logging.info(u'Upsert chatroom info: {0} [{1}], {2} members found'.format(data['NickName'],
+                                                                                 room_id,
+                                                                                 len(data['MemberList'])))
 
         for member in data['MemberList']:
             member_id = member['UserName']
             self.chatroom[room_id]['MemberList'][member_id] = member
-            print u'\t- {0} [{1}]'.format(member['NickName'], member_id)
+            logging.info(u'Member: {0} [{1}]'.format(member['NickName'], member_id))
 
-        print '<' * 40
         self.chatroom_timestamp[room_id] = time.time()
     
     def get_contact(self, contact_id):

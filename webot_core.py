@@ -11,15 +11,20 @@ class WebotCore(object):
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '\
                           'Chrome/47.0.2526.106 Safari/537.36'
         self.qr_url = None
+        logging.info('WebotCore init ...')
 
     def start(self, res_hanlder, context):
         self.get_uuid()
-        logging.info(self.qr_url)
-        remain_check = 10
-        while not self.check_login() and remain_check > 0:
-            remain_check -= 1
+        logging.info('QR code url: {0}'.format(self.qr_url))
+        time_waiting = 1 * 60 # 1 minute
+        start_time = time.time()
+        end_time = time.time()
+        while not self.check_login() and end_time - start_time < time_waiting:
             logging.info('Please scan the QR using your wechat client: {url}'.format(url=self.qr_url))
-            logging.info('checking remaining: {0}'.format(remain_check))
+            end_time = time.time()
+        if end_time - start_time >= time_waiting:
+            logging.error('Login timeout, process terminated.')
+            raise Exception('Login timeout, process terminated.')
 
         init_res = self.wechat_init()
         res_hanlder.wechat_init(context, init_res)
@@ -29,6 +34,7 @@ class WebotCore(object):
 
         # TODO: capture signal routines when process shutdown
         while True:
+            logging.info('Start webot looping')
             sync_res = self.synccheck()
             res_hanlder.wechat_sync(context, sync_res)
 
@@ -96,7 +102,7 @@ class WebotCore(object):
         self.skey = rjson['SKey']
         self.synckey = self.gen_synckey(rjson['SyncKey'])
         self.synckey_json = rjson['SyncKey']
-        print 'Weixin init completed!\nUserName:%s\nNickName:%s\n'%(rjson['User']['UserName'], rjson['User']['NickName'])
+        logging.info(u'Weixin init completed. UserName: %s, NickName:%s', rjson['User']['UserName'], rjson['User']['NickName'])
         return rjson
 
     def gen_synckey(self, synckey):
