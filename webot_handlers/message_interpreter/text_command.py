@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import random
+import random, logging
 
 call_me_response = [
     u'有什么可以帮助您的呢？',
@@ -13,5 +13,5 @@ call_me_response = [
 
 def parse_and_response(context, obj, task_pool):
     if obj.content.find(context.my_profile['Name']) != -1:
-        print 'Someone called me!'
+        logging.info('Someone called me!')
         task_pool.send_message(to=obj.sender_id, msg=random.choice(call_me_response))
