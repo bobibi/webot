@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+import re, logging
 import pprint as pp
 import individual_message_handler as imh
 import chatroom_message_handler as cmh
@@ -34,7 +34,7 @@ class WechatMessage(object):
 
 
 def message_package_handler(context, msg, task_pool):
-    print u'%d messages fetched!'%msg['AddMsgCount']
+    logging.info(u'%d messages fetched!'%msg['AddMsgCount'])
 
     for m in msg['AddMsgList']:
         msg_obj = WechatMessage(m)
@@ -58,6 +58,6 @@ def single_message_handler(context, obj, task_pool):
 
 def nop_handler(context, obj, task_pool):
     contact = context.get_contact(obj.sender_id)
-    print u'Unknow msg type: {0}'.format(obj.message_type)
-    print u'From: {0} [{1}]'.format('' if contact is None else contact['NickName'], obj.sender_id)
-    print u'Content: {0}'.format(obj.content)
+    logging.info(u'Unknow msg type: {0}'.format(obj.message_type))
+    logging.info(u'From: {0} [{1}]'.format('' if contact is None else contact['NickName'], obj.sender_id))
+    logging.info(u'Content: {0}'.format(obj.content))

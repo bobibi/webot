@@ -33,7 +33,7 @@ class WebotCore(object):
         res_hanlder.wechat_contact(context, contact_res)
 
         # TODO: capture signal routines when process shutdown
-        while True:
+        while 1 > 0:
             logging.info('Start webot looping')
             sync_res = self.synccheck()
             res_hanlder.wechat_sync(context, sync_res)
