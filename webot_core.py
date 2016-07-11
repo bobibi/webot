@@ -1,4 +1,4 @@
-import string, random, requests, re, urllib, time, cStringIO, json
+import string, random, requests, re, urllib, time, cStringIO, json, logging
 
 
 class WebotCore(object):
@@ -11,44 +11,46 @@ class WebotCore(object):
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '\
                           'Chrome/47.0.2526.106 Safari/537.36'
         self.qr_url = None
-        self.wechat_context = {
-            'contact': {},
-            'chatroom': {},
-        }
+        logging.info('WebotCore init ...')
 
-    def start(self, res_hanlder):
+    def start(self, res_hanlder, context):
         self.get_uuid()
-        try:
-            self.pop_qr()
-        except:
-            print 'Please open and scan: ' + self.qr_url
-        while not self.check_login():
-            print 'Please scan the QR using your wechat client: {url}'.format(url=self.qr_url)
+        logging.info('QR code url: {0}'.format(self.qr_url))
+        time_waiting = 1 * 60 # 1 minute
+        start_time = time.time()
+        end_time = time.time()
+        while not self.check_login() and end_time - start_time < time_waiting:
+            logging.info('Please scan the QR using your wechat client: {url}'.format(url=self.qr_url))
+            end_time = time.time()
+        if end_time - start_time >= time_waiting:
+            logging.error('Login timeout, process terminated.')
+            raise Exception('Login timeout, process terminated.')
 
         init_res = self.wechat_init()
-        res_hanlder.wechat_init(self.wechat_context, init_res)
+        res_hanlder.wechat_init(context, init_res)
 
         contact_res = self.get_contact()
-        res_hanlder.wechat_contact(self.wechat_context, contact_res)
+        res_hanlder.wechat_contact(context, contact_res)
 
         # TODO: capture signal routines when process shutdown
-        while True:
+        logging.info('Start webot looping')
+        while 1 > 0:
             sync_res = self.synccheck()
-            res_hanlder.wechat_sync(self.wechat_context, sync_res)
+            res_hanlder.wechat_sync(context, sync_res)
 
             msg_res = self.fetch_message()
-            task_pool = res_hanlder.wechat_message(self.wechat_context, msg_res)
+            task_pool = res_hanlder.wechat_message(context, msg_res)
 
             for out_msg in task_pool.out_messages:
                 self.send_message(out_msg['to'], out_msg['msg'])
 
             if len(task_pool.chatrooms_need_info) > 0:
                 chatroom_res = self.get_chatrooms_info(task_pool.chatrooms_need_info)
-                res_hanlder.wechat_chatroom_info(self.wechat_context, chatroom_res)
+                res_hanlder.wechat_chatroom_info(context, chatroom_res)
 
             if task_pool.refresh_contact:
                 contact_res = self.get_contact()
-                res_hanlder.wechat_contact(self.wechat_context, contact_res)
+                res_hanlder.wechat_contact(context, contact_res)
 
     def get_uuid(self):
         url = 'https://login.weixin.qq.com/jslogin?appid=wx782c26e4c19acffb&redirect_uri=https%3A%2F%2Fwx.qq.com'\
@@ -100,7 +102,7 @@ class WebotCore(object):
         self.skey = rjson['SKey']
         self.synckey = self.gen_synckey(rjson['SyncKey'])
         self.synckey_json = rjson['SyncKey']
-        print 'Weixin init completed!\nUserName:%s\nNickName:%s\n'%(rjson['User']['UserName'], rjson['User']['NickName'])
+        logging.info(u'Weixin init completed. UserName: %s, NickName:%s', rjson['User']['UserName'], rjson['User']['NickName'])
         return rjson
 
     def gen_synckey(self, synckey):
